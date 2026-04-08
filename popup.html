@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DarkWatch</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>DarkWatch</h1>
+        <p class="subtitle">Detector de patrones oscuros</p>
+      </header>
+
+      <section class="card">
+        <p class="label">Página actual</p>
+        <p id="pageUrl" class="muted">Cargando...</p>
+      </section>
+
+      <button id="analyzeBtn" type="button">Analizar página</button>
+
+      <section class="card">
+        <div class="row space-between">
+          <p class="label">Resultado</p>
+          <span id="badge" class="badge">Sin análisis</span>
+        </div>
+        <p id="summary" class="muted">Aún no se ha ejecutado ningún análisis.</p>
+      </section>
+
+      <section class="card">
+        <p class="label">Hallazgos</p>
+        <ul id="resultsList" class="results-list">
+          <li class="empty">No hay resultados todavía.</li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

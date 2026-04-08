@@ -1,0 +1,72 @@
+[
+  {
+    "id": "false_urgency",
+    "name": "Urgencia falsa",
+    "description": "Presiona al usuario con una sensación artificial de tiempo limitado.",
+    "signals": ["solo hoy", "últimas horas", "termina en", "contador regresivo"],
+    "baseSeverity": "Alta"
+  },
+  {
+    "id": "false_scarcity",
+    "name": "Escasez falsa",
+    "description": "Sugiere que quedan pocas unidades o que mucha gente observa el producto.",
+    "signals": ["solo quedan 2", "alta demanda", "personas viendo esto"],
+    "baseSeverity": "Alta"
+  },
+  {
+    "id": "confirmshaming",
+    "name": "Confirmshaming",
+    "description": "Hace sentir culpa o vergüenza al usuario por rechazar una opción.",
+    "signals": ["no quiero ahorrar", "prefiero pagar más", "no gracias, prefiero"],
+    "baseSeverity": "Media"
+  },
+  {
+    "id": "hidden_subscription",
+    "name": "Suscripción oculta",
+    "description": "Oculta o minimiza que una acción activa cobros recurrentes.",
+    "signals": ["prueba gratis", "renovación automática", "suscripción mensual"],
+    "baseSeverity": "Alta"
+  },
+  {
+    "id": "hidden_costs",
+    "name": "Costos ocultos",
+    "description": "Agrega o revela costos tarde en el flujo de compra.",
+    "signals": ["cargo por servicio", "gastos de gestión", "tarifa adicional"],
+    "baseSeverity": "Alta"
+  },
+  {
+    "id": "roach_motel",
+    "name": "Roach motel",
+    "description": "Es fácil suscribirse o entrar, pero difícil salir o cancelar.",
+    "signals": ["contacta soporte para cancelar", "solicita la baja", "cancelar por teléfono"],
+    "baseSeverity": "Media"
+  },
+  {
+    "id": "preselection",
+    "name": "Preselección engañosa",
+    "description": "Marca opciones por defecto que favorecen al negocio.",
+    "signals": ["checkbox checked", "radio preseleccionado", "upsell activado por defecto"],
+    "baseSeverity": "Media"
+  },
+  {
+    "id": "visual_interference",
+    "name": "Interferencia visual",
+    "description": "Da mucho más peso visual a aceptar que a rechazar.",
+    "signals": ["botón aceptar más grande", "rechazar casi invisible", "colores dominantes"],
+    "baseSeverity": "Media"
+  },
+  {
+    "id": "obstruction",
+    "name": "Obstrucción",
+    "description": "Bloquea el avance con modales, overlays o pasos innecesarios.",
+    "signals": ["popup invasivo", "overlay bloqueante", "aceptar para continuar"],
+    "baseSeverity": "Alta"
+  },
+  {
+    "id": "misdirection",
+    "name": "Misdirection",
+    "description": "Guía visualmente al usuario hacia una acción diferente a la deseada.",
+    "signals": ["texto ambiguo", "acción principal engañosa", "omitir oculto"],
+    "baseSeverity": "Media"
+  }
+]
