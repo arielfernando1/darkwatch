@@ -139,6 +139,4 @@ Esta versión puede:
 - detectar modales visibles sospechosos
 - comparar visualmente botones de aceptar y rechazar
 - mostrar los hallazgos en un popup
-
-N
 ---
