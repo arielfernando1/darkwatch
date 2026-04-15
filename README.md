@@ -139,4 +139,139 @@ Esta versión puede:
 - detectar modales visibles sospechosos
 - comparar visualmente botones de aceptar y rechazar
 - mostrar los hallazgos en un popup
+
+N
 ---
+# DarkWatch · Semana 2
+
+DarkWatch es una extensión de Chrome basada en **Manifest V3** que captura el DOM visible de la página activa, aplica heurísticas de detección de dark patterns y luego envía un resumen estructurado a un **clasificador LLM listo para demo**.
+
+## Qué cubre esta versión
+
+Esta iteración implementa los entregables de la **semana 2** del proyecto:
+
+- captura del DOM de la página activa
+- preparación del contenido para clasificación
+- integración con un motor **LLM demo local** y soporte opcional para **endpoint remoto**
+- panel visual con hallazgos, categoría, severidad y evidencia
+- lista sugerida de 5 e-commerce para la demo
+
+## Estructura principal
+
+```text
+DarkWatch/
+├── manifest.json
+├── popup.html
+├── popup.css
+├── popup.js
+├── content.js
+├── background.js
+├── eslint.config.js
+├── package.json
+├── README.md
+├── .gitignore
+├── .github/workflows/lint.yml
+├── data/
+│   └── patterns.json
+├── docs/
+│   ├── SEMANA1_RESUMEN.md
+│   ├── SEMANA2_RESUMEN.md
+│   ├── PROMPT_LLM.md
+│   └── demo-sites.md
+│   └── Informe_DarkWatch_Semana2.pdf
+├── rules/
+│   └── detectors.js
+├── services/
+│   └── llmClient.js
+└── utils/
+    └── domHelpers.js
+```
+
+## Arquitectura rápida
+
+### 1. `content.js`
+Captura información del DOM visible:
+- texto visible
+- botones
+- modales y overlays
+- formularios
+- checkboxes y radios
+- timers o elementos tipo countdown
+
+### 2. `rules/detectors.js`
+Aplica las reglas heurísticas base por patrón:
+- urgencia falsa
+- escasez falsa
+- confirmshaming
+- suscripción oculta
+- costos ocultos
+- roach motel
+- preselección engañosa
+- interferencia visual
+- obstrucción
+- misdirection
+
+### 3. `services/llmClient.js`
+Prepara el prompt y clasifica los hallazgos.
+
+Modos disponibles:
+- **mock**: demo local segura, sin exponer API key
+- **remote**: envía el prompt a un endpoint externo configurado por el usuario
+
+> Nota: el API key no debe quedar expuesta dentro de la extensión.
+
+### 4. `popup.js`
+Muestra el panel con:
+- motor de clasificación
+- resumen del análisis
+- métricas de captura DOM
+- lista de patrones detectados y categoría
+
+## Cómo ejecutar
+
+### 1. Instalar dependencias
+```bash
+npm install
+```
+
+### 2. Cargar la extensión
+1. Abrir `chrome://extensions/`
+2. Activar **Modo desarrollador**
+3. Clic en **Cargar descomprimida**
+4. Seleccionar la carpeta del proyecto
+
+### 3. Analizar una página
+1. Abrir un sitio web
+2. Abrir DarkWatch
+3. Elegir modo de motor
+4. Pulsar **Analizar página**
+
+## Modo LLM demo vs remoto
+
+### Modo demo local
+Es el modo por defecto. Funciona sin backend ni API key.
+Sirve para mostrar el flujo de la semana 2.
+
+### Modo remoto
+Permite enviar el resumen de la página a un backend propio.
+El endpoint debería aceptar un `POST` con JSON y devolver algo como:
+
+```json
+{
+  "model": "Mi LLM",
+  "warning": "",
+  "findings": [
+    {
+      "id": "confirmshaming",
+      "name": "Confirmshaming",
+      "category": "Manipulación emocional",
+      "severity": "Media",
+      "evidence": "No gracias, prefiero pagar más",
+      "selector": ".newsletter-modal",
+      "confidence": "Alta",
+      "source": "LLM remoto"
+    }
+  ]
+}
+```
+

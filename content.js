@@ -1,97 +1,195 @@
-/* global detectDarkPatterns */
+/* global isElementVisible, getElementText, getSimpleSelector, getContextText, toRectSummary, getElementRole */
+/* global detectDarkPatterns, classifyDarkPatternsWithLLM */
+
+function sliceElements(selector, mapper, limit) {
+  return Array.from(document.querySelectorAll(selector)).slice(0, limit).map(mapper);
+}
 
 function collectPageSnapshot() {
   const bodyText = document.body?.innerText || '';
-  const checkboxCandidates = Array.from(
-    document.querySelectorAll('input[type="checkbox"], input[type="radio"]')
-  ).map((element) => ({
-    checked: Boolean(element.checked),
-    name: element.name || '',
-    id: element.id || '',
-    value: element.value || '',
-    selector: getSimpleSelector(element),
-    contextText: element.closest('label, form, div, section')?.innerText?.slice(0, 200) || ''
-  }));
 
-  const buttonCandidates = Array.from(document.querySelectorAll('button, a, input[type="button"], input[type="submit"]'))
-    .slice(0, 80)
-    .map((element) => ({
-      text: getElementText(element),
+  const checkboxCandidates = sliceElements(
+    'input[type="checkbox"], input[type="radio"]',
+    (element) => ({
+      checked: Boolean(element.checked),
+      name: element.name || '',
+      id: element.id || '',
+      value: element.value || '',
       selector: getSimpleSelector(element),
-      width: Math.round(element.getBoundingClientRect().width || 0),
-      height: Math.round(element.getBoundingClientRect().height || 0),
-      visible: isElementVisible(element)
-    }));
+      contextText: getContextText(element),
+      visible: isElementVisible(element),
+    }),
+    60,
+  );
 
-  const modalCandidates = Array.from(document.querySelectorAll('[role="dialog"], dialog, .modal, .popup, .overlay, .newsletter, .cookie, .cookies'))
-    .slice(0, 40)
-    .map((element) => ({
+  const buttonCandidates = sliceElements(
+    'button, a, input[type="button"], input[type="submit"]',
+    (element) => ({
       text: getElementText(element),
       selector: getSimpleSelector(element),
       visible: isElementVisible(element),
-      width: Math.round(element.getBoundingClientRect().width || 0),
-      height: Math.round(element.getBoundingClientRect().height || 0)
-    }));
+      role: getElementRole(element),
+      rect: toRectSummary(element),
+    }),
+    120,
+  );
+
+  const modalCandidates = sliceElements(
+    '[role="dialog"], dialog, .modal, .popup, .overlay, .newsletter, .cookie, .cookies, [aria-modal="true"]',
+    (element) => ({
+      text: getElementText(element),
+      selector: getSimpleSelector(element),
+      visible: isElementVisible(element),
+      rect: toRectSummary(element),
+    }),
+    50,
+  );
+
+  const linkCandidates = sliceElements(
+    'a, button',
+    (element) => ({
+      text: getElementText(element),
+      selector: getSimpleSelector(element),
+      visible: isElementVisible(element),
+    }),
+    120,
+  );
+
+  const formCandidates = sliceElements(
+    'form, section, article, aside',
+    (element) => ({
+      text: getElementText(element),
+      selector: getSimpleSelector(element),
+      visible: isElementVisible(element),
+    }),
+    80,
+  ).filter((item) => item.text);
+
+  const timerCandidates = sliceElements(
+    '[class*="countdown"], [id*="countdown"], [class*="timer"], [id*="timer"], [data-testid*="countdown"]',
+    (element) => ({
+      text: getElementText(element),
+      selector: getSimpleSelector(element),
+      visible: isElementVisible(element),
+    }),
+    20,
+  );
+
+  const stats = {
+    textLength: bodyText.length,
+    checkboxCount: checkboxCandidates.length,
+    buttonCount: buttonCandidates.filter((item) => item.visible).length,
+    modalCount: modalCandidates.filter((item) => item.visible).length,
+    formCount: formCandidates.filter((item) => item.visible).length,
+    timerCount: timerCandidates.filter((item) => item.visible).length,
+  };
 
   return {
     url: window.location.href,
     title: document.title,
     bodyText,
+    shortText: bodyText.replace(/\s+/g, ' ').trim().slice(0, 2500),
     checkboxCandidates,
     buttonCandidates,
-    modalCandidates
+    modalCandidates,
+    linkCandidates,
+    formCandidates,
+    timerCandidates,
+    stats,
   };
 }
 
-function isElementVisible(element) {
-  const style = window.getComputedStyle(element);
-  const rect = element.getBoundingClientRect();
-
-  return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+function getStorage(keys) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(keys, (value) => resolve(value));
+  });
 }
 
-function getElementText(element) {
-  return (element.innerText || element.value || element.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 300);
+function getRiskLevel(findings) {
+  if (findings.some((item) => item.severity === 'Alta')) {
+    return 'high';
+  }
+
+  if (findings.some((item) => item.severity === 'Media')) {
+    return 'medium';
+  }
+
+  return 'low';
 }
 
-function getSimpleSelector(element) {
-  if (!element) {
-    return 'unknown';
+function buildSummary(title, findings, modelLabel) {
+  if (!findings.length) {
+    return `Análisis completado en ${title}. El clasificador ${modelLabel} no encontró patrones con las reglas y señales actuales.`;
   }
 
-  if (element.id) {
-    return `#${element.id}`;
-  }
-
-  const className = typeof element.className === 'string'
-    ? element.className.trim().split(/\s+/).filter(Boolean).slice(0, 2).join('.')
-    : '';
-
-  return className ? `${element.tagName.toLowerCase()}.${className}` : element.tagName.toLowerCase();
+  return `Se detectaron ${findings.length} posible(s) patrón(es) oscuro(s) en ${title}. Clasificación realizada con ${modelLabel}.`;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type !== 'RUN_ANALYSIS') {
-    return;
+  if (message.type !== 'RUN_WEEK2_ANALYSIS') {
+    return undefined;
   }
 
-  const snapshot = collectPageSnapshot();
-  const findings = detectDarkPatterns(snapshot);
+  (async () => {
+    try {
+      const snapshot = collectPageSnapshot();
+      const heuristicFindings = detectDarkPatterns(snapshot);
+      const settings = await getStorage(['llmMode', 'remoteEndpoint', 'modelLabel']);
 
-  sendResponse({
-    title: snapshot.title,
-    url: snapshot.url,
-    findings,
-    maxSeverity: findings.reduce((acc, item) => {
-      if (item.severity === 'Alta') {
-        return 'high';
-      }
+      console.log('SETTINGS EN CONTENT:', settings);
 
-      if (item.severity === 'Media' && acc !== 'high') {
-        return 'medium';
-      }
+      const llmResult = await classifyDarkPatternsWithLLM(
+        {
+          snapshot,
+          heuristicFindings,
+        },
+        settings
+      );
 
-      return acc;
-    }, 'low')
-  });
+      const findings = llmResult.findings || [];
+      const riskLevel = getRiskLevel(findings);
+      const summary = buildSummary(
+        snapshot.title,
+        findings,
+        llmResult.model || settings.modelLabel || 'LLM'
+      );
+
+      sendResponse({
+        title: snapshot.title,
+        url: snapshot.url,
+        findings,
+        summary,
+        heuristicCount: heuristicFindings.length,
+        llmMode: llmResult.effectiveMode || settings.llmMode || 'mock',
+        model: llmResult.model || settings.modelLabel || 'LLM',
+        warning: llmResult.warning || '',
+        promptPreview: llmResult.prompt?.slice(0, 1500) || '',
+        stats: snapshot.stats,
+        riskLevel,
+      });
+    } catch (error) {
+      console.error('ERROR EN CONTENT:', error);
+
+      sendResponse({
+        title: document.title,
+        url: window.location.href,
+        findings: [],
+        summary: 'Ocurrió un error durante el análisis.',
+        heuristicCount: 0,
+        llmMode: 'remote-error',
+        model: 'Error',
+        warning: error.message || 'Error desconocido en content.js',
+        promptPreview: '',
+        stats: {
+          textLength: 0,
+          buttonCount: 0,
+          modalCount: 0,
+          formCount: 0,
+        },
+        riskLevel: 'low',
+      });
+    }
+  })();
+
+  return true;
 });

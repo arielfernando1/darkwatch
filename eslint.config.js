@@ -5,6 +5,7 @@ module.exports = [
       ecmaVersion: 2022,
       sourceType: 'script',
       globals: {
+        module: 'readonly',
         chrome: 'readonly',
         document: 'readonly',
         window: 'readonly',
@@ -13,15 +14,22 @@ module.exports = [
         Array: 'readonly',
         Boolean: 'readonly',
         Math: 'readonly',
-        Set: 'readonly'
-      }
+        Set: 'readonly',
+        Promise: 'readonly',
+        fetch: 'readonly',
+        JSON: 'readonly',
+        Error: 'readonly',
+        Object: 'readonly',
+        String: 'readonly',
+        RegExp: 'readonly',
+      },
     },
     rules: {
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       'no-undef': 'error',
       semi: ['error', 'always'],
       quotes: ['error', 'single'],
-      'comma-dangle': ['error', 'always-multiline']
-    }
-  }
+      'comma-dangle': ['error', 'always-multiline'],
+    },
+  },
 ];

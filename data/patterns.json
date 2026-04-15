@@ -2,71 +2,163 @@
   {
     "id": "false_urgency",
     "name": "Urgencia falsa",
+    "category": "Presión temporal",
     "description": "Presiona al usuario con una sensación artificial de tiempo limitado.",
-    "signals": ["solo hoy", "últimas horas", "termina en", "contador regresivo"],
+    "signals": [
+      "solo hoy",
+      "últimas horas",
+      "termina en",
+      "contador regresivo"
+    ],
+    "criteria": [
+      "Buscar textos de urgencia temporal en banners, hero o checkout.",
+      "Revisar elementos con countdown, timer o mensajes de expiración.",
+      "Marcar alto si el contador se combina con CTA de compra o suscripción."
+    ],
     "baseSeverity": "Alta"
   },
   {
     "id": "false_scarcity",
     "name": "Escasez falsa",
+    "category": "Escasez manipulada",
     "description": "Sugiere que quedan pocas unidades o que mucha gente observa el producto.",
-    "signals": ["solo quedan 2", "alta demanda", "personas viendo esto"],
+    "signals": [
+      "solo quedan 2",
+      "alta demanda",
+      "personas viendo esto"
+    ],
+    "criteria": [
+      "Buscar frases de stock extremadamente bajo o visitas simultáneas.",
+      "Marcar si el mensaje aparece cerca de precio, inventario o CTA."
+    ],
     "baseSeverity": "Alta"
   },
   {
     "id": "confirmshaming",
     "name": "Confirmshaming",
+    "category": "Manipulación emocional",
     "description": "Hace sentir culpa o vergüenza al usuario por rechazar una opción.",
-    "signals": ["no quiero ahorrar", "prefiero pagar más", "no gracias, prefiero"],
+    "signals": [
+      "no quiero ahorrar",
+      "prefiero pagar más",
+      "no gracias, prefiero"
+    ],
+    "criteria": [
+      "Buscar mensajes de rechazo con tono humillante, culposo o irónico.",
+      "Verificar si aparece dentro de popups de newsletter, descuentos o cookies."
+    ],
     "baseSeverity": "Media"
   },
   {
     "id": "hidden_subscription",
     "name": "Suscripción oculta",
+    "category": "Cobro recurrente oculto",
     "description": "Oculta o minimiza que una acción activa cobros recurrentes.",
-    "signals": ["prueba gratis", "renovación automática", "suscripción mensual"],
+    "signals": [
+      "prueba gratis",
+      "renovación automática",
+      "suscripción mensual"
+    ],
+    "criteria": [
+      "Detectar bloques con free trial y texto de renovación o cobro mensual.",
+      "Subir severidad si el aviso es pequeño o secundario frente al CTA."
+    ],
     "baseSeverity": "Alta"
   },
   {
     "id": "hidden_costs",
     "name": "Costos ocultos",
+    "category": "Costos tardíos",
     "description": "Agrega o revela costos tarde en el flujo de compra.",
-    "signals": ["cargo por servicio", "gastos de gestión", "tarifa adicional"],
+    "signals": [
+      "cargo por servicio",
+      "gastos de gestión",
+      "tarifa adicional"
+    ],
+    "criteria": [
+      "Buscar cargos extra en checkout, resumen o condiciones al final.",
+      "Marcar alto si no se observan antes del precio principal."
+    ],
     "baseSeverity": "Alta"
   },
   {
     "id": "roach_motel",
     "name": "Roach motel",
+    "category": "Salida difícil",
     "description": "Es fácil suscribirse o entrar, pero difícil salir o cancelar.",
-    "signals": ["contacta soporte para cancelar", "solicita la baja", "cancelar por teléfono"],
+    "signals": [
+      "contacta soporte para cancelar",
+      "solicita la baja",
+      "cancelar por teléfono"
+    ],
+    "criteria": [
+      "Buscar instrucciones complejas o externas para cancelar.",
+      "Marcar si suscribirse se logra en un clic y cancelar no."
+    ],
     "baseSeverity": "Media"
   },
   {
     "id": "preselection",
     "name": "Preselección engañosa",
+    "category": "Default sesgado",
     "description": "Marca opciones por defecto que favorecen al negocio.",
-    "signals": ["checkbox checked", "radio preseleccionado", "upsell activado por defecto"],
+    "signals": [
+      "checkbox checked",
+      "radio preseleccionado",
+      "upsell activado por defecto"
+    ],
+    "criteria": [
+      "Revisar checkbox y radio en formularios, upsells y seguros.",
+      "Marcar si una opción extra ya viene activada."
+    ],
     "baseSeverity": "Media"
   },
   {
     "id": "visual_interference",
     "name": "Interferencia visual",
+    "category": "Jerarquía visual sesgada",
     "description": "Da mucho más peso visual a aceptar que a rechazar.",
-    "signals": ["botón aceptar más grande", "rechazar casi invisible", "colores dominantes"],
+    "signals": [
+      "botón aceptar más grande",
+      "rechazar casi invisible",
+      "colores dominantes"
+    ],
+    "criteria": [
+      "Comparar área visual entre CTA principal y rechazo/configurar.",
+      "Marcar si aceptar es notablemente más grande o llamativo."
+    ],
     "baseSeverity": "Media"
   },
   {
     "id": "obstruction",
     "name": "Obstrucción",
+    "category": "Bloqueo del flujo",
     "description": "Bloquea el avance con modales, overlays o pasos innecesarios.",
-    "signals": ["popup invasivo", "overlay bloqueante", "aceptar para continuar"],
+    "signals": [
+      "popup invasivo",
+      "overlay bloqueante",
+      "aceptar para continuar"
+    ],
+    "criteria": [
+      "Detectar role=dialog, overlay, popups de newsletter o cookies.",
+      "Marcar alto si tapan contenido o exigen una acción para continuar."
+    ],
     "baseSeverity": "Alta"
   },
   {
     "id": "misdirection",
     "name": "Misdirection",
+    "category": "Desvío de intención",
     "description": "Guía visualmente al usuario hacia una acción diferente a la deseada.",
-    "signals": ["texto ambiguo", "acción principal engañosa", "omitir oculto"],
+    "signals": [
+      "texto ambiguo",
+      "acción principal engañosa",
+      "omitir oculto"
+    ],
+    "criteria": [
+      "Buscar acciones secundarias con lenguaje de pérdida o renuncia.",
+      "Verificar si el CTA principal induce una decisión distinta a la intención del usuario."
+    ],
     "baseSeverity": "Media"
   }
 ]

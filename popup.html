@@ -9,13 +9,39 @@
   <body>
     <main class="container">
       <header>
-        <h1>DarkWatch</h1>
-        <p class="subtitle">Detector de patrones oscuros</p>
+        <div class="title-row">
+          <div>
+            <h1>DarkWatch</h1>
+            <p class="subtitle">Detector de patrones oscuros · Semana 2</p>
+          </div>
+          <span id="engineBadge" class="badge engine">LLM demo</span>
+        </div>
       </header>
 
-      <section class="card">
+      <section class="card compact-card">
         <p class="label">Página actual</p>
         <p id="pageUrl" class="muted">Cargando...</p>
+      </section>
+
+      <section class="card compact-card">
+        <div class="row space-between">
+          <p class="label">Motor de clasificación</p>
+          <span id="modeHint" class="mini-note">demo local</span>
+        </div>
+        <div class="settings-grid">
+          <label>
+            <span>Modo</span>
+            <select id="modeSelect">
+              <option value="mock">LLM demo local</option>
+              <option value="remote">Endpoint remoto</option>
+            </select>
+          </label>
+          <label>
+            <span>Endpoint remoto</span>
+            <input id="remoteEndpoint" type="url" placeholder="http://localhost:8787/analyze" />
+          </label>
+        </div>
+        <button id="saveSettingsBtn" type="button" class="secondary">Guardar motor</button>
       </section>
 
       <button id="analyzeBtn" type="button">Analizar página</button>
@@ -23,13 +49,27 @@
       <section class="card">
         <div class="row space-between">
           <p class="label">Resultado</p>
-          <span id="badge" class="badge">Sin análisis</span>
+          <span id="riskBadge" class="badge">Sin análisis</span>
         </div>
         <p id="summary" class="muted">Aún no se ha ejecutado ningún análisis.</p>
+        <p id="warningBox" class="warning hidden"></p>
       </section>
 
       <section class="card">
-        <p class="label">Hallazgos</p>
+        <p class="label">Captura DOM</p>
+        <div id="statsGrid" class="stats-grid">
+          <div><span class="stat-number">0</span><span class="stat-label">texto</span></div>
+          <div><span class="stat-number">0</span><span class="stat-label">botones</span></div>
+          <div><span class="stat-number">0</span><span class="stat-label">modales</span></div>
+          <div><span class="stat-number">0</span><span class="stat-label">formularios</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="row space-between">
+          <p class="label">Hallazgos</p>
+          <span id="countPill" class="pill">0</span>
+        </div>
         <ul id="resultsList" class="results-list">
           <li class="empty">No hay resultados todavía.</li>
         </ul>
