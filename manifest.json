@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "DarkWatch",
-  "version": "0.2.0",
-  "description": "Detector de patrones oscuros en páginas web con captura de DOM y clasificador LLM listo para demo.",
+  "version": "0.3.0",
+  "description": "Detector de patrones oscuros en páginas web con modo local/remoto, severidad y evidencia visual.",
   "permissions": ["activeTab", "storage"],
   "host_permissions": ["<all_urls>"],
   "action": {

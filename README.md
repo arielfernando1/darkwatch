@@ -275,3 +275,98 @@ El endpoint debería aceptar un `POST` con JSON y devolver algo como:
 }
 ```
 
+
+
+# DarkWatch · Semana 3
+
+Extensión Chrome para detectar patrones oscuros en páginas web, con dos modos:
+
+- **Local**: solo reglas heurísticas en la extensión.
+- **Remoto**: backend Python (FastAPI) que puede llama a OpenAI de forma segura.
+
+## Qué agrega la semana 3
+
+- Severidad por hallazgo: Alta / Media / Baja.
+- Evidencia visual automática: recorte del primer hallazgo con coordenadas visibles.
+- Catálogo ético interno en `data/ethical-catalog.json`.
+- Validación con backend Python y opción para conectar OpenAI sin exponer la clave en la extensión.
+
+## Estructura importante
+
+- `content.js` → captura DOM y arma el snapshot.
+- `rules/detectors.js` → reglas heurísticas y severidad base.
+- `services/llmClient.js` → decide si analiza en modo local o remoto.
+- `popup.js` → muestra resultados y recorta evidencia visual.
+- `backend/app.py` → endpoint FastAPI para usar OpenAI o fallback local.
+
+## Cómo cargar la extensión
+
+1. Ejecuta `npm install`
+2. Abre `chrome://extensions/`
+3. Activa **Modo desarrollador**
+4. Pulsa **Cargar descomprimida**
+5. Selecciona la carpeta `darkwatch-week3`
+
+## Cómo levantar el backend en Windows
+
+Desde la carpeta `backend/`:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+```
+
+Edita `.env` y coloca tu nueva `OPENAI_API_KEY`.
+
+Luego ejecuta:
+
+```powershell
+uvicorn app:app --reload --port 8000
+```
+
+Prueba salud del backend:
+
+- `http://127.0.0.1:8000/health`
+
+## Flujo de prueba recomendado
+
+### Modo local
+- En la extensión selecciona **Local**
+- Analiza una página
+- Verifica hallazgos y evidencia visual
+
+### Modo remoto
+- Levanta el backend Python
+- En la extensión selecciona **Remoto**
+- Usa `http://127.0.0.1:8000/api/classify`
+- Pulsa **Probar backend**
+- Luego **Analizar página**
+
+## Qué subir a Git
+
+Sí:
+- `package.json`
+- `package-lock.json`
+- `manifest.json`
+- `popup.*`
+- `content.js`
+- `background.js`
+- `services/`
+- `rules/`
+- `utils/`
+- `data/`
+- `docs/`
+- `backend/app.py`
+- `backend/requirements.txt`
+- `backend/.env.example`
+
+No:
+- `node_modules/`
+- `backend/.venv/`
+- `backend/.env`
+
+## Nota de seguridad
+
+

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "false_urgency",
+    "name": "Urgencia falsa",
+    "ethicalReference": "deceptive.design · urgency",
+    "question": "¿La interfaz crea presión temporal artificial para acelerar la decisión?"
+  },
+  {
+    "id": "false_scarcity",
+    "name": "Escasez falsa",
+    "ethicalReference": "deceptive.design · scarcity",
+    "question": "¿La interfaz exagera el stock o la demanda sin evidencia verificable?"
+  },
+  {
+    "id": "confirmshaming",
+    "name": "Confirmshaming",
+    "ethicalReference": "deceptive.design · confirmshaming",
+    "question": "¿Rechazar una opción hace sentir culpa, vergüenza o pérdida absurda?"
+  },
+  {
+    "id": "hidden_subscription",
+    "name": "Suscripción oculta",
+    "ethicalReference": "deceptive.design · subscription traps",
+    "question": "¿La interfaz oculta que el flujo genera cobros recurrentes?"
+  },
+  {
+    "id": "hidden_costs",
+    "name": "Costos ocultos",
+    "ethicalReference": "deceptive.design · hidden costs",
+    "question": "¿Los cargos adicionales aparecen tarde o con poca claridad?"
+  },
+  {
+    "id": "roach_motel",
+    "name": "Roach motel",
+    "ethicalReference": "deceptive.design · roach motel",
+    "question": "¿Es fácil entrar y difícil salir o cancelar?"
+  },
+  {
+    "id": "preselection",
+    "name": "Preselección engañosa",
+    "ethicalReference": "deceptive.design · sneaking / preselection",
+    "question": "¿Hay opciones activadas por defecto a favor del negocio?"
+  },
+  {
+    "id": "visual_interference",
+    "name": "Interferencia visual",
+    "ethicalReference": "deceptive.design · visual interference",
+    "question": "¿La jerarquía visual empuja una decisión concreta?"
+  },
+  {
+    "id": "obstruction",
+    "name": "Obstrucción",
+    "ethicalReference": "deceptive.design · obstruction",
+    "question": "¿Un popup o muro impide avanzar con normalidad?"
+  },
+  {
+    "id": "misdirection",
+    "name": "Misdirection",
+    "ethicalReference": "deceptive.design · misdirection",
+    "question": "¿El diseño conduce hacia una acción distinta a la intención del usuario?"
+  }
+]

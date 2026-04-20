@@ -10,7 +10,12 @@ const warningBox = document.getElementById('warningBox');
 const modeSelect = document.getElementById('modeSelect');
 const remoteEndpoint = document.getElementById('remoteEndpoint');
 const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+const testBackendBtn = document.getElementById('testBackendBtn');
 const modeHint = document.getElementById('modeHint');
+const evidenceCard = document.getElementById('evidenceCard');
+const evidenceImage = document.getElementById('evidenceImage');
+const evidenceLabel = document.getElementById('evidenceLabel');
+const evidenceMeta = document.getElementById('evidenceMeta');
 
 function escapeHtml(value) {
   return String(value)
@@ -30,20 +35,10 @@ function setRiskBadge(level, text) {
 }
 
 function setEngine(mode, model) {
-  let label = 'LLM demo';
-  let hint = 'demo local';
-
-  if (mode === 'remote') {
-    label = 'LLM remoto';
-    hint = 'endpoint remoto';
-  } else if (mode === 'remote-error') {
-    label = 'Remoto con error';
-    hint = 'fallback o fallo remoto';
-  }
-
-  engineBadge.textContent = model || label;
-  modeHint.textContent = hint;
+  engineBadge.textContent = model || (mode === 'remote' ? 'Backend' : 'Local');
+  modeHint.textContent = mode === 'remote' ? 'backend Python / remoto' : 'heurísticas locales';
 }
+
 function renderStats(stats) {
   const values = [
     { label: 'texto', value: stats?.textLength || 0 },
@@ -52,14 +47,12 @@ function renderStats(stats) {
     { label: 'formularios', value: stats?.formCount || 0 },
   ];
 
-  statsGrid.innerHTML = values
-    .map((item) => `
-      <div>
-        <span class="stat-number">${escapeHtml(item.value)}</span>
-        <span class="stat-label">${escapeHtml(item.label)}</span>
-      </div>
-    `)
-    .join('');
+  statsGrid.innerHTML = values.map((item) => `
+    <div>
+      <span class="stat-number">${escapeHtml(item.value)}</span>
+      <span class="stat-label">${escapeHtml(item.label)}</span>
+    </div>
+  `).join('');
 }
 
 function renderResults(results) {
@@ -70,21 +63,20 @@ function renderResults(results) {
     return;
   }
 
-  resultsList.innerHTML = results
-    .map((item) => `
-      <li>
-        <strong>${escapeHtml(item.name)}</strong>
-        <div class="category">Categoría: ${escapeHtml(item.category || 'Sin categoría')}</div>
-        <div>${escapeHtml(item.evidence || 'Sin evidencia textual.')}</div>
-        <div class="meta">
-          Severidad: ${escapeHtml(item.severity || 'Media')} ·
-          Confianza: ${escapeHtml(item.confidence || 'Media')} ·
-          Fuente: ${escapeHtml(item.source || 'LLM')}
-        </div>
-        <div class="meta">Selector: ${escapeHtml(item.selector || 'No disponible')}</div>
-      </li>
-    `)
-    .join('');
+  resultsList.innerHTML = results.map((item) => `
+    <li>
+      <strong>${escapeHtml(item.name)}</strong>
+      <div class="category">Categoría: ${escapeHtml(item.category || 'Sin categoría')}</div>
+      <div>${escapeHtml(item.evidence || 'Sin evidencia textual.')}</div>
+      <div class="meta">
+        Severidad: ${escapeHtml(item.severity || 'Media')} ·
+        Confianza: ${escapeHtml(item.confidence || 'Media')} ·
+        Fuente: ${escapeHtml(item.source || 'Local')}
+      </div>
+      <div class="meta">Selector: ${escapeHtml(item.selector || 'No disponible')}</div>
+      <div class="meta">Ética: ${escapeHtml(item.ethicalReference || 'Catálogo interno DarkWatch')}</div>
+    </li>
+  `).join('');
 }
 
 function setLoadingState(isLoading) {
@@ -106,16 +98,16 @@ function setStorage(value) {
 
 async function loadSettings() {
   const settings = await getStorage(['llmMode', 'remoteEndpoint', 'modelLabel']);
-  modeSelect.value = settings.llmMode || 'mock';
-  remoteEndpoint.value = settings.remoteEndpoint || '';
-  setEngine(settings.llmMode || 'mock', settings.modelLabel || 'DarkWatch Mock LLM v0.2');
+  modeSelect.value = settings.llmMode || 'local';
+  remoteEndpoint.value = settings.remoteEndpoint || 'http://127.0.0.1:8000/api/classify';
+  setEngine(settings.llmMode || 'local', settings.modelLabel || 'Local');
 }
 
 saveSettingsBtn.addEventListener('click', async () => {
   const payload = {
     llmMode: modeSelect.value,
     remoteEndpoint: remoteEndpoint.value.trim(),
-    modelLabel: modeSelect.value === 'remote' ? 'LLM remoto' : 'DarkWatch Mock LLM v0.2',
+    modelLabel: modeSelect.value === 'remote' ? 'Backend Python' : 'Local',
   };
 
   await setStorage(payload);
@@ -124,11 +116,88 @@ saveSettingsBtn.addEventListener('click', async () => {
   setRiskBadge('', 'Configurado');
 });
 
+async function testBackend() {
+  const endpoint = remoteEndpoint.value.trim();
+  if (!endpoint) {
+    summary.textContent = 'Primero coloca una URL de backend.';
+    setRiskBadge('', 'Sin URL');
+    return;
+  }
+
+  const healthUrl = endpoint.replace(/\/api\/classify$/i, '/health');
+  try {
+    const response = await fetch(healthUrl);
+    if (!response.ok) {
+      throw new Error(`Estado ${response.status}`);
+    }
+    const data = await response.json();
+    summary.textContent = `Backend activo. Proveedor: ${data.provider}. Modelo: ${data.model || 'sin configurar'}.`;
+    setRiskBadge('low', 'Backend OK');
+  } catch (error) {
+    summary.textContent = `No se pudo conectar con el backend: ${error.message}`;
+    setRiskBadge('', 'Backend error');
+  }
+}
+
+testBackendBtn.addEventListener('click', testBackend);
+
+function resetEvidence() {
+  evidenceCard.classList.add('hidden');
+  evidenceImage.removeAttribute('src');
+  evidenceLabel.textContent = 'Sin recorte';
+  evidenceMeta.textContent = 'Se recorta el primer hallazgo con coordenadas visibles.';
+}
+
+async function captureEvidence(target) {
+  if (!target?.rect) {
+    resetEvidence();
+    return;
+  }
+
+  try {
+    const imageUrl = await chrome.tabs.captureVisibleTab(undefined, { format: 'png' });
+    const image = await loadImage(imageUrl);
+    const rect = target.rect;
+    const pixelRatio = target.devicePixelRatio || 1;
+    const padding = 16;
+
+    const sx = Math.max(0, Math.round((rect.left - padding) * pixelRatio));
+    const sy = Math.max(0, Math.round((rect.top - padding) * pixelRatio));
+    const sw = Math.min(image.width - sx, Math.round((rect.width + padding * 2) * pixelRatio));
+    const sh = Math.min(image.height - sy, Math.round((rect.height + padding * 2) * pixelRatio));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, sw);
+    canvas.height = Math.max(1, sh);
+    const context = canvas.getContext('2d');
+    context.drawImage(image, sx, sy, sw, sh, 0, 0, sw, sh);
+
+    evidenceImage.src = canvas.toDataURL('image/png');
+    evidenceLabel.textContent = target.name || 'Evidencia';
+    evidenceMeta.textContent = `Selector: ${target.selector || 'No disponible'} · ${rect.width}x${rect.height}`;
+    evidenceCard.classList.remove('hidden');
+  } catch (error) {
+    resetEvidence();
+    warningBox.textContent = `No se pudo capturar la evidencia visual: ${error.message}`;
+    warningBox.classList.remove('hidden');
+  }
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
 function analyzeTab(tabId) {
   setLoadingState(true);
   warningBox.classList.add('hidden');
+  resetEvidence();
 
-  chrome.tabs.sendMessage(tabId, { type: 'RUN_WEEK2_ANALYSIS' }, (response) => {
+  chrome.tabs.sendMessage(tabId, { type: 'RUN_WEEK3_ANALYSIS' }, async (response) => {
     setLoadingState(false);
 
     if (chrome.runtime.lastError) {
@@ -143,7 +212,7 @@ function analyzeTab(tabId) {
     summary.textContent = response?.summary || 'Análisis completado.';
     renderStats(response?.stats || {});
     renderResults(response?.findings || []);
-    setEngine(response?.llmMode || 'mock', response?.model || 'LLM');
+    setEngine(response?.llmMode || 'local', response?.model || 'Local');
 
     const level = response?.riskLevel || 'low';
     const label = level === 'high' ? 'Riesgo alto' : level === 'medium' ? 'Riesgo medio' : 'Riesgo bajo';
@@ -152,6 +221,10 @@ function analyzeTab(tabId) {
     if (response?.warning) {
       warningBox.textContent = response.warning;
       warningBox.classList.remove('hidden');
+    }
+
+    if (response?.screenshotTarget) {
+      await captureEvidence(response.screenshotTarget);
     }
   });
 }

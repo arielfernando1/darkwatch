@@ -1,0 +1,19 @@
+fastapi==0.116.1
+uvicorn==0.35.0
+python-dotenv==1.1.1
+openai==1.108.1
+
+
+Ejecutar servidor:
+
+.\.venv\Scripts\python.exe -m uvicorn app:app --port 8000
+
+Prueba en navegador:
+http://127.0.0.1:8000/health
+
+Respuesta:
+{"ok":true,"provider":"openai","model":"gpt-5.4-mini"}
+ok: true
+provider: openai si la clave fue leída bien
+o provider: fallback si no la leyó
+

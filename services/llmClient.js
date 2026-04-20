@@ -11,63 +11,37 @@
     return [
       'Eres un analista ético de UX especializado en dark patterns.',
       'Clasifica los hallazgos detectados en una página web.',
-      'Responde con JSON y campos: id, name, category, severity, evidence, selector, confidence, source, rationale.',
+      'Responde en JSON con un arreglo findings. Cada hallazgo debe tener: id, name, category, severity, evidence, selector, confidence, source, rationale.',
       `URL: ${payload.snapshot.url}`,
       `Título: ${payload.snapshot.title}`,
       `Texto visible resumido: ${payload.snapshot.shortText}`,
       `Botones visibles: ${payload.snapshot.buttonCandidates.length}`,
       `Modales visibles: ${payload.snapshot.modalCandidates.filter((item) => item.visible).length}`,
-      `Heurísticas previas:
-${heuristicLines.join('\n') || 'Sin hallazgos heurísticos.'}`,
+      `Heurísticas previas:\n${heuristicLines.join('\n') || 'Sin hallazgos heurísticos.'}`,
     ].join('\n\n');
   }
 
   function confidenceFromSeverity(severity) {
-    if (severity === 'Alta') {
-      return 'Alta';
-    }
-
-    if (severity === 'Media') {
-      return 'Media';
-    }
-
+    if (severity === 'Alta') return 'Alta';
+    if (severity === 'Media') return 'Media';
     return 'Baja';
   }
 
-  function runMockClassifier(payload) {
+  function runLocalClassifier(payload) {
     const findings = payload.heuristicFindings.map((finding) => {
       const meta = getPatternMeta(finding.id);
       return {
         ...finding,
         category: finding.category || meta?.category || 'Sin categoría',
         confidence: finding.confidence || confidenceFromSeverity(finding.severity),
-        source: 'LLM demo local',
-        rationale: meta
-          ? `${meta.description} Se confirmó a partir del DOM visible y la evidencia capturada.`
-          : 'Hallazgo confirmado por el clasificador demo.',
+        source: 'Local',
+        rationale: meta ? `${meta.description} Confirmado con el DOM visible.` : 'Hallazgo confirmado localmente.',
       };
     });
 
-    const pageText = (payload.snapshot.bodyText || '').toLowerCase();
-
-    if (!findings.length && pageText.includes('free trial') && pageText.includes('monthly')) {
-      const meta = getPatternMeta('hidden_subscription');
-      findings.push({
-        id: meta.id,
-        name: meta.name,
-        category: meta.category,
-        severity: meta.severity,
-        evidence: 'El texto de la página sugiere una prueba gratis con posible mensualidad.',
-        selector: 'body',
-        confidence: 'Baja',
-        source: 'LLM demo local',
-        rationale: meta.description,
-      });
-    }
-
     return {
       findings,
-      model: 'DarkWatch Mock LLM v0.2',
+      model: 'Local',
       warning: '',
       prompt: buildPrompt(payload),
     };
@@ -82,13 +56,7 @@ ${heuristicLines.join('\n') || 'Sin hallazgos heurísticos.'}`,
       },
       body: JSON.stringify({
         prompt,
-        snapshot: {
-          url: payload.snapshot.url,
-          title: payload.snapshot.title,
-          shortText: payload.snapshot.shortText,
-          textLength: payload.snapshot.bodyText.length,
-          stats: payload.snapshot.stats,
-        },
+        snapshot: payload.snapshot,
         heuristicFindings: payload.heuristicFindings,
       }),
     });
@@ -100,49 +68,30 @@ ${heuristicLines.join('\n') || 'Sin hallazgos heurísticos.'}`,
     const data = await response.json();
     return {
       findings: Array.isArray(data.findings) ? data.findings : [],
-      model: data.model || 'LLM remoto',
+      model: data.model || 'Backend Python',
       warning: data.warning || '',
       prompt,
     };
   }
 
- async function classifyDarkPatternsWithLLM(payload, settings) {
-  const mode = settings?.llmMode || 'mock';
-  const remoteEndpoint = settings?.remoteEndpoint || '';
+  async function classifyDarkPatternsWithLLM(payload, settings) {
+    const mode = settings?.llmMode || 'local';
+    const remoteEndpoint = settings?.remoteEndpoint || '';
 
-  if (mode === 'remote') {
-    if (!remoteEndpoint) {
-      return {
-        findings: [],
-        model: 'Endpoint remoto no configurado',
-        warning: 'Integracion con LLM remoto en proceso ...',
-        prompt: buildPrompt(payload),
-        effectiveMode: 'remote-error',
-      };
+    if (mode === 'remote' && remoteEndpoint) {
+      try {
+        return await runRemoteClassifier(payload, remoteEndpoint);
+      } catch (error) {
+        const fallback = runLocalClassifier(payload);
+        return {
+          ...fallback,
+          warning: `Falló el backend remoto. Se usó el análisis local. Detalle: ${error.message}`,
+        };
+      }
     }
 
-    try {
-      const remote = await runRemoteClassifier(payload, remoteEndpoint);
-      return {
-        ...remote,
-        effectiveMode: 'remote',
-      };
-    } catch (error) {
-      return {
-        findings: [],
-        model: 'Endpoint remoto no disponible',
-        warning: `No se pudo usar ${remoteEndpoint}. Detalle: ${error.message}`,
-        prompt: buildPrompt(payload),
-        effectiveMode: 'remote-error',
-      };
-    }
+    return runLocalClassifier(payload);
   }
-
-  return {
-    ...runMockClassifier(payload),
-    effectiveMode: 'mock',
-  };
-}
 
   window.buildDarkWatchPrompt = buildPrompt;
   window.classifyDarkPatternsWithLLM = classifyDarkPatternsWithLLM;

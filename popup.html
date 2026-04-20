@@ -12,9 +12,9 @@
         <div class="title-row">
           <div>
             <h1>DarkWatch</h1>
-            <p class="subtitle">Detector de patrones oscuros · Semana 2</p>
+            <p class="subtitle">Detector de patrones oscuros · Semana 3</p>
           </div>
-          <span id="engineBadge" class="badge engine">LLM demo</span>
+          <span id="engineBadge" class="badge engine">Local</span>
         </div>
       </header>
 
@@ -25,23 +25,26 @@
 
       <section class="card compact-card">
         <div class="row space-between">
-          <p class="label">Motor de clasificación</p>
-          <span id="modeHint" class="mini-note">demo local</span>
+          <p class="label">Motor de análisis</p>
+          <span id="modeHint" class="mini-note">heurísticas locales</span>
         </div>
         <div class="settings-grid">
           <label>
             <span>Modo</span>
             <select id="modeSelect">
-              <option value="mock">LLM demo local</option>
-              <option value="remote">Endpoint remoto</option>
+              <option value="local">Local (sin backend)</option>
+              <option value="remote">Remoto (backend Python)</option>
             </select>
           </label>
           <label>
-            <span>Endpoint remoto</span>
-            <input id="remoteEndpoint" type="url" placeholder="http://localhost:8787/analyze" />
+            <span>Endpoint</span>
+            <input id="remoteEndpoint" type="url" placeholder="http://127.0.0.1:8000/api/classify" />
           </label>
         </div>
-        <button id="saveSettingsBtn" type="button" class="secondary">Guardar motor</button>
+        <div class="button-row">
+          <button id="saveSettingsBtn" type="button" class="secondary">Guardar motor</button>
+          <button id="testBackendBtn" type="button" class="secondary">Probar backend</button>
+        </div>
       </section>
 
       <button id="analyzeBtn" type="button">Analizar página</button>
@@ -63,6 +66,15 @@
           <div><span class="stat-number">0</span><span class="stat-label">modales</span></div>
           <div><span class="stat-number">0</span><span class="stat-label">formularios</span></div>
         </div>
+      </section>
+
+      <section class="card hidden" id="evidenceCard">
+        <div class="row space-between">
+          <p class="label">Evidencia visual</p>
+          <span id="evidenceLabel" class="pill">Sin recorte</span>
+        </div>
+        <img id="evidenceImage" class="evidence-image" alt="Evidencia visual del elemento detectado" />
+        <p id="evidenceMeta" class="mini-note">Se recorta el primer hallazgo con coordenadas visibles.</p>
       </section>
 
       <section class="card">

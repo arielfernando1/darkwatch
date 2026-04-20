@@ -18,6 +18,7 @@ function collectPageSnapshot() {
       selector: getSimpleSelector(element),
       contextText: getContextText(element),
       visible: isElementVisible(element),
+      rect: toRectSummary(element),
     }),
     60,
   );
@@ -51,6 +52,7 @@ function collectPageSnapshot() {
       text: getElementText(element),
       selector: getSimpleSelector(element),
       visible: isElementVisible(element),
+      rect: toRectSummary(element),
     }),
     120,
   );
@@ -61,6 +63,7 @@ function collectPageSnapshot() {
       text: getElementText(element),
       selector: getSimpleSelector(element),
       visible: isElementVisible(element),
+      rect: toRectSummary(element),
     }),
     80,
   ).filter((item) => item.text);
@@ -71,6 +74,7 @@ function collectPageSnapshot() {
       text: getElementText(element),
       selector: getSimpleSelector(element),
       visible: isElementVisible(element),
+      rect: toRectSummary(element),
     }),
     20,
   );
@@ -88,7 +92,7 @@ function collectPageSnapshot() {
     url: window.location.href,
     title: document.title,
     bodyText,
-    shortText: bodyText.replace(/\s+/g, ' ').trim().slice(0, 2500),
+    shortText: bodyText.replace(/\s+/g, ' ').trim().slice(0, 3000),
     checkboxCandidates,
     buttonCandidates,
     modalCandidates,
@@ -96,6 +100,11 @@ function collectPageSnapshot() {
     formCandidates,
     timerCandidates,
     stats,
+    viewport: {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    },
+    devicePixelRatio: window.devicePixelRatio || 1,
   };
 }
 
@@ -105,90 +114,70 @@ function getStorage(keys) {
   });
 }
 
+function severityRank(severity) {
+  if (severity === 'Alta') return 3;
+  if (severity === 'Media') return 2;
+  return 1;
+}
+
 function getRiskLevel(findings) {
-  if (findings.some((item) => item.severity === 'Alta')) {
-    return 'high';
-  }
-
-  if (findings.some((item) => item.severity === 'Media')) {
-    return 'medium';
-  }
-
+  if (findings.some((item) => item.severity === 'Alta')) return 'high';
+  if (findings.some((item) => item.severity === 'Media')) return 'medium';
   return 'low';
+}
+
+function chooseScreenshotTarget(findings, snapshot) {
+  const candidate = [...findings]
+    .filter((item) => item.rect && item.rect.width > 0 && item.rect.height > 0)
+    .sort((a, b) => severityRank(b.severity) - severityRank(a.severity))[0];
+
+  if (!candidate) {
+    return null;
+  }
+
+  return {
+    name: candidate.name,
+    selector: candidate.selector,
+    rect: candidate.rect,
+    devicePixelRatio: snapshot.devicePixelRatio || 1,
+  };
 }
 
 function buildSummary(title, findings, modelLabel) {
   if (!findings.length) {
-    return `Análisis completado en ${title}. El clasificador ${modelLabel} no encontró patrones con las reglas y señales actuales.`;
+    return `Análisis completado en ${title}. El motor ${modelLabel} no encontró patrones con las reglas y señales actuales.`;
   }
 
   return `Se detectaron ${findings.length} posible(s) patrón(es) oscuro(s) en ${title}. Clasificación realizada con ${modelLabel}.`;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type !== 'RUN_WEEK2_ANALYSIS') {
+  if (message.type !== 'RUN_WEEK3_ANALYSIS') {
     return undefined;
   }
 
   (async () => {
-    try {
-      const snapshot = collectPageSnapshot();
-      const heuristicFindings = detectDarkPatterns(snapshot);
-      const settings = await getStorage(['llmMode', 'remoteEndpoint', 'modelLabel']);
+    const snapshot = collectPageSnapshot();
+    const heuristicFindings = detectDarkPatterns(snapshot);
+    const settings = await getStorage(['llmMode', 'remoteEndpoint', 'modelLabel']);
+    const llmResult = await classifyDarkPatternsWithLLM({ snapshot, heuristicFindings }, settings);
 
-      console.log('SETTINGS EN CONTENT:', settings);
+    const findings = llmResult.findings || [];
+    const riskLevel = getRiskLevel(findings);
+    const summary = buildSummary(snapshot.title, findings, llmResult.model || settings.modelLabel || 'Local');
+    const screenshotTarget = chooseScreenshotTarget(findings, snapshot);
 
-      const llmResult = await classifyDarkPatternsWithLLM(
-        {
-          snapshot,
-          heuristicFindings,
-        },
-        settings
-      );
-
-      const findings = llmResult.findings || [];
-      const riskLevel = getRiskLevel(findings);
-      const summary = buildSummary(
-        snapshot.title,
-        findings,
-        llmResult.model || settings.modelLabel || 'LLM'
-      );
-
-      sendResponse({
-        title: snapshot.title,
-        url: snapshot.url,
-        findings,
-        summary,
-        heuristicCount: heuristicFindings.length,
-        llmMode: llmResult.effectiveMode || settings.llmMode || 'mock',
-        model: llmResult.model || settings.modelLabel || 'LLM',
-        warning: llmResult.warning || '',
-        promptPreview: llmResult.prompt?.slice(0, 1500) || '',
-        stats: snapshot.stats,
-        riskLevel,
-      });
-    } catch (error) {
-      console.error('ERROR EN CONTENT:', error);
-
-      sendResponse({
-        title: document.title,
-        url: window.location.href,
-        findings: [],
-        summary: 'Ocurrió un error durante el análisis.',
-        heuristicCount: 0,
-        llmMode: 'remote-error',
-        model: 'Error',
-        warning: error.message || 'Error desconocido en content.js',
-        promptPreview: '',
-        stats: {
-          textLength: 0,
-          buttonCount: 0,
-          modalCount: 0,
-          formCount: 0,
-        },
-        riskLevel: 'low',
-      });
-    }
+    sendResponse({
+      title: snapshot.title,
+      stats: snapshot.stats,
+      findings,
+      riskLevel,
+      summary,
+      model: llmResult.model || 'Local',
+      llmMode: settings.llmMode || 'local',
+      warning: llmResult.warning || '',
+      screenshotTarget,
+    });
   })();
 
   return true;
