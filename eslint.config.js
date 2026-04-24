@@ -22,6 +22,10 @@ module.exports = [
         Object: 'readonly',
         String: 'readonly',
         RegExp: 'readonly',
+        URL: 'readonly',
+        Blob: 'readonly',
+        require: 'readonly',
+        __dirname: 'readonly',
       },
     },
     rules: {

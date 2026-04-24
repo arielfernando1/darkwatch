@@ -12,7 +12,7 @@
         <div class="title-row">
           <div>
             <h1>DarkWatch</h1>
-            <p class="subtitle">Detector de patrones oscuros · Semana 3</p>
+            <p class="subtitle">Detector de patrones oscuros · Semana 4</p>
           </div>
           <span id="engineBadge" class="badge engine">Local</span>
         </div>
@@ -59,7 +59,10 @@
       </section>
 
       <section class="card">
-        <p class="label">Captura DOM</p>
+        <div class="row space-between">
+          <p class="label">Captura DOM</p>
+          <span id="historyPill" class="pill">0 registros</span>
+        </div>
         <div id="statsGrid" class="stats-grid">
           <div><span class="stat-number">0</span><span class="stat-label">texto</span></div>
           <div><span class="stat-number">0</span><span class="stat-label">botones</span></div>
@@ -84,6 +87,29 @@
         </div>
         <ul id="resultsList" class="results-list">
           <li class="empty">No hay resultados todavía.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <p class="label">Reportes y base comparativa</p>
+        <div class="button-grid-2">
+          <button id="exportSiteBtn" type="button" class="secondary">Exportar sitio</button>
+          <button id="exportComparativeBtn" type="button" class="secondary">Exportar comparativo</button>
+        </div>
+        <div class="button-grid-2 top-gap">
+          <button id="exportDatabaseBtn" type="button" class="secondary">Exportar base JSON</button>
+          <button id="clearHistoryBtn" type="button" class="secondary danger">Limpiar historial</button>
+        </div>
+        <p class="mini-note top-gap">Cada análisis se guarda automáticamente en almacenamiento local para construir la base de 20 sitios analizados.</p>
+      </section>
+
+      <section class="card">
+        <div class="row space-between">
+          <p class="label">Historial reciente</p>
+          <span id="uniqueSitesPill" class="pill">0 sitios</span>
+        </div>
+        <ul id="historyList" class="history-list">
+          <li class="empty">Todavía no se han guardado análisis.</li>
         </ul>
       </section>
     </main>

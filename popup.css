@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-  width: 380px;
+  width: 400px;
   padding: 16px;
 }
 
@@ -77,10 +77,20 @@ button.secondary {
   color: #3730a3;
 }
 
-.button-row {
+button.danger {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.button-row,
+.button-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.top-gap {
+  margin-top: 8px;
 }
 
 .settings-grid {
@@ -164,24 +174,30 @@ input {
   color: #6b7280;
 }
 
-.results-list {
+.results-list,
+.history-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
   gap: 10px;
+}
+
+.results-list {
   max-height: 320px;
   overflow-y: auto;
 }
 
-.results-list li {
+.results-list li,
+.history-list li {
   border: 1px solid #eef2f7;
   border-radius: 12px;
   padding: 10px;
   background: #f9fafb;
 }
 
-.results-list li.empty {
+.results-list li.empty,
+.history-list li.empty {
   color: #6b7280;
   text-align: center;
 }
@@ -207,4 +223,22 @@ input {
   max-height: 180px;
   object-fit: contain;
   background: #fff;
+}
+
+.history-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.history-domain {
+  font-size: 11px;
+  color: #6b7280;
+  word-break: break-all;
 }

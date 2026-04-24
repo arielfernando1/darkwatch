@@ -11,7 +11,7 @@
     return [
       'Eres un analista ético de UX especializado en dark patterns.',
       'Clasifica los hallazgos detectados en una página web.',
-      'Responde en JSON con un arreglo findings. Cada hallazgo debe tener: id, name, category, severity, evidence, selector, confidence, source, rationale.',
+      'Responde en JSON con un arreglo findings. Cada hallazgo debe tener: id, name, category, severity, evidence, selector, confidence, source, rationale, ethicalReference.',
       `URL: ${payload.snapshot.url}`,
       `Título: ${payload.snapshot.title}`,
       `Texto visible resumido: ${payload.snapshot.shortText}`,
@@ -42,6 +42,7 @@
     return {
       findings,
       model: 'Local',
+      provider: 'local',
       warning: '',
       prompt: buildPrompt(payload),
     };
@@ -69,6 +70,7 @@
     return {
       findings: Array.isArray(data.findings) ? data.findings : [],
       model: data.model || 'Backend Python',
+      provider: data.provider || 'remote',
       warning: data.warning || '',
       prompt,
     };

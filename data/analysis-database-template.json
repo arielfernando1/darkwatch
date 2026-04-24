@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-04-20T00:00:00Z",
+  "tool": "DarkWatch",
+  "version": "0.4.0",
+  "totalAnalyses": 0,
+  "uniqueSites": 0,
+  "summary": {
+    "totalAnalyses": 0,
+    "uniqueSites": 0,
+    "riskLevels": {},
+    "findingsByPattern": {},
+    "findingsBySeverity": {},
+    "findingsByCategory": {},
+    "findingsByEthics": {}
+  },
+  "analyses": []
+}

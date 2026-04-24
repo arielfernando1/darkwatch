@@ -126,19 +126,58 @@ function getRiskLevel(findings) {
   return 'low';
 }
 
+function pickBestFallbackTarget(findings, snapshot) {
+  const firstFinding = findings[0];
+  if (!firstFinding) return null;
+
+  const evidenceText = `${firstFinding.evidence || ''} ${firstFinding.name || ''} ${firstFinding.selector || ''}`.toLowerCase();
+  const keywords = evidenceText
+    .split(/[^a-z0-9áéíóúüñ]+/i)
+    .filter((word) => word.length >= 4);
+
+  const pools = [
+    ...snapshot.modalCandidates,
+    ...snapshot.timerCandidates,
+    ...snapshot.formCandidates,
+    ...snapshot.buttonCandidates,
+    ...snapshot.linkCandidates,
+  ];
+
+  const visibleCandidates = pools.filter(
+    (item) => item.visible && item.rect && item.rect.width > 0 && item.rect.height > 0
+  );
+
+  const matched = visibleCandidates.find((item) => {
+    const text = `${item.text || ''} ${item.selector || ''}`.toLowerCase();
+    return keywords.some((word) => text.includes(word));
+  });
+
+  return matched || visibleCandidates[0] || null;
+}
+
 function chooseScreenshotTarget(findings, snapshot) {
-  const candidate = [...findings]
+  const directCandidate = [...findings]
     .filter((item) => item.rect && item.rect.width > 0 && item.rect.height > 0)
     .sort((a, b) => severityRank(b.severity) - severityRank(a.severity))[0];
 
-  if (!candidate) {
+  if (directCandidate) {
+    return {
+      name: directCandidate.name,
+      selector: directCandidate.selector,
+      rect: directCandidate.rect,
+      devicePixelRatio: snapshot.devicePixelRatio || 1,
+    };
+  }
+
+  const fallback = pickBestFallbackTarget(findings, snapshot);
+  if (!fallback) {
     return null;
   }
 
   return {
-    name: candidate.name,
-    selector: candidate.selector,
-    rect: candidate.rect,
+    name: findings[0]?.name || 'Evidencia',
+    selector: fallback.selector || findings[0]?.selector || 'No disponible',
+    rect: fallback.rect,
     devicePixelRatio: snapshot.devicePixelRatio || 1,
   };
 }
@@ -152,7 +191,7 @@ function buildSummary(title, findings, modelLabel) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type !== 'RUN_WEEK3_ANALYSIS') {
+  if (message.type !== 'RUN_WEEK4_ANALYSIS') {
     return undefined;
   }
 
@@ -169,6 +208,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     sendResponse({
       title: snapshot.title,
+      url: snapshot.url,
+      evaluatedAt: new Date().toISOString(),
       stats: snapshot.stats,
       findings,
       riskLevel,

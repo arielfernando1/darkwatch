@@ -16,7 +16,7 @@ OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-5.4-mini')
 PROMPT_PATH = Path(__file__).parent / 'prompts' / 'classify_dark_patterns.txt'
 SYSTEM_PROMPT = PROMPT_PATH.read_text(encoding='utf-8') if PROMPT_PATH.exists() else ''
 
-app = FastAPI(title='DarkWatch Backend', version='0.3.0')
+app = FastAPI(title='DarkWatch Backend', version='0.4.0')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],
