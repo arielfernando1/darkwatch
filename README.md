@@ -51,6 +51,14 @@ Prueba salud del backend:
 
 - `http://127.0.0.1:8000/health`
 
+```json
+{
+  "ok": true,
+  "provider": "openai",
+  "model": "gpt-5.4-mini"
+}
+```
+
 ## Flujo de prueba recomendado
 
 ### Modo local
